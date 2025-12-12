@@ -1,30 +1,22 @@
-# --- General ---
 mypy
 loguru
 
-# --- UX-UI CLI ---
 # Note: apps start with cli ux-ui using lazyvim in development environments
 tdqm
 typer
 rich
 inquirerpy
-
-# --- Core Python Libraries for TDD, UX-UI, and Utilities ---
-
 cryptography
 send2trash
 pytest
-pytest-tmpdir-ng 
-
-# --- Rust Interop ---
 
 # Interop with Rust and python
 # https://www.maturin.rs/tutorial.html
 maturin
 
 # zstd in python
-# https://python-zstandard.readthedocs.io/en/latest/
-python-zstandard 
+# https://pypi.org/project/zstandard/
+zstandard
 
 # Maybe needed if not included by others
 # pybase64

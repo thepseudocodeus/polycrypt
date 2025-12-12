@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
-# encrypt.py
+"""
+pycrypt.py encrypts a directory for secure use with git, git-lfs, etc.
+"""
 
 import typer
 from rich.console import Console
@@ -10,21 +11,18 @@ from typing import Optional
 from loguru import logger
 import sys
 
-# --- 1. SETUP & CONFIGURATION ---
-# Initialize Typer App and Rich Console
+# Initialize UX-UI
 app = typer.Typer(
-    name="poincare", 
-    help="⚡ Poincare High-Efficiency Data Security Playbook.", 
+    name="poincare",
+    help="⚡ Poincare High-Efficiency Data Security Playbook.",
     rich_markup_path=True
 )
 console = Console()
 logger.remove()
 logger.add(sys.stderr, format="<green>{time:HH:mm:ss}</green> | <level>{level}</level> | {message}", level="INFO")
 
-# --- 2. ABSTRACTION LAYER (THE CONTRACT) ---
-
-# NOTE: This interface defines the contract that the Rust-backed service 
-# (which you will build and inject later) MUST implement.
+# Abstraction for interfacing with Rust implementation
+# [] TODO: make work
 class IEncryptionService:
     """The abstraction layer defining the required encryption contract."""
     def encrypt_directory(self, data_path: Path, key_str: str, output_path: Path) -> float:
@@ -34,49 +32,47 @@ class IEncryptionService:
         """
         raise NotImplementedError
 
-# --- 3. PURE PYTHON MOCK (The MVP for TDD/UX Validation) ---
-
 class MockEncryptionService(IEncryptionService):
     """
     A pure Python mock used for TDD, UX/UI testing, and quick debugging.
     It simulates the complexity and speed of the final Rust service.
     """
     def encrypt_directory(self, data_path: Path, key_str: str, output_path: Path) -> float:
-        # 1. UX: Simulate the complex layered process using a Rich Progress Bar
+        # [] TODO: replace simulation
         logger.info(f"Starting pipeline for: {data_path.name}")
-        
+
         total_steps = 100
         for step in track(range(total_steps), description="[bold blue]Running security pipeline...[/bold blue]"):
-            # Simulate work: Compression (ZSTD), Hashing (SHA256), Encryption (Fernet)
+            # Pipeline: Compression (ZSTD), Hashing (SHA256), Encryption (Fernet)
             if step == 20: logger.debug("ZSTD Compression initiated.")
             if step == 50: logger.debug("Integrity Hashing complete.")
             if step == 80: logger.debug("Fernet Encryption initiated.")
-            
-            # Simulate slow Python I/O before Rust takes over
+
+            # [] TODO: replace simulation
             import time
-            time.sleep(0.01) 
-        
-        # 2. DATA: Write a dummy file to satisfy the main encryption test
+            time.sleep(0.01)
+
+        # [] TODO: replace mock data in stages: mock_data directory and then use with real data
         output_path.write_text(f"ENCRYPTED_MOCK_DATA-{key_str}")
-        
-        # 3. METRIC: Return the quantifiable metric (The goal for Rust to beat)
-        duration = 1.05  # Simulating a slow Python run for baseline metric
+
+        # Return metric for Rust implementation to beat
+        # [] TODO: replace initial simulation with actual implementation on the go app created mock_data directory
+        duration = 1.05
         logger.success(f"Pipeline complete. Encrypted file: {output_path.name}")
-        
+
         return duration
 
-# --- 4. THE TYPER CLI COMMANDS (Optimal UX/UI) ---
-
+# [] TODO: automate command creation using a builder abstraction
 @app.command(
     name="encrypt",
     help="🔒 [bold green]Encrypt[/bold green] the target data directory with the Poincare pipeline."
 )
 def encrypt_cli(
     target_dir: Path = typer.Argument(
-        ..., 
-        exists=True, 
-        file_okay=False, 
-        dir_okay=True, 
+        ...,
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
         resolve_path=True,
         help="The 'data/' directory to encrypt."
     ),
@@ -88,13 +84,16 @@ def encrypt_cli(
     )
 ):
     """The main CLI entry point for the encryption playbook."""
-    
-    # --- 4a. UX/UI: Interactive Prompts (InquirerPy/Rich) ---
+
+    # [] TODO: build a UX-UI message generator instead of writing this by hand
+    # Note: consider using haskell for easy of composition and focus on pure pipeline
+    #   - Can leverage code from haskell blog generator (search for: learning projects in local NAS)
     console.rule("[bold cyan]Poincare Encryption Playbook[/bold cyan]")
-    
-    # Simulate secure key retrieval prompt (would be from a secure store in production)
+
+    # Note: simulates using a secure key retrieval process
+    # [] TODO: automate
     key_input = Prompt.ask("[bold yellow]Enter or generate[/bold yellow] the Fernet Key (or press ENTER to mock)")
-    
+
     if not key_input:
         key_str = "MOCK_KEY_FOR_TESTING_XXXXXXXXXXXXXXXXXXXXXXX"
         logger.warning("Using mock key. DO NOT use in production.")
@@ -102,26 +101,23 @@ def encrypt_cli(
         key_str = key_input
 
     output_path = target_dir.parent / output_name
-    
+
     if output_path.exists() and not force:
         if not Confirm.ask(f"⚠️ [bold red]'{output_path.name}' already exists. Overwrite?[/bold red]"):
             logger.info("Operation cancelled by user.")
             raise typer.Exit()
 
-    # --- 4b. CORE EXECUTION ---
-    # The DI pattern: The Runner asks for the Service via the Abstraction
-    service: IEncryptionService = MockEncryptionService() 
-    
+    # [] TODO: consider simplifying if can be done quickly
+    service: IEncryptionService = MockEncryptionService()
+
     try:
-        # Run the mock pipeline (The function that Rust will replace)
+        # [] TODO: replace with rust implementation
         duration = service.encrypt_directory(target_dir, key_str, output_path)
-        
-        # --- 4c. UX/UI: Final Report ---
+
         console.rule("[bold green]✅ Pipeline Success[/bold green]")
         console.print(f"Directory: [green]{target_dir.name}[/green] -> File: [green]{output_path.name}[/green]")
         console.print(f"Efficiency Baseline: [bold magenta]{duration:.3f} seconds[/bold magenta] (Target for Rust Optimization)")
 
-        # The post-encryption step (Security/Risk Arbitrage)
         if Confirm.ask("[bold red]RISK ARBITRAGE:[/bold red] Move original directory to trash?"):
             from send2trash import send2trash
             send2trash(str(target_dir))
@@ -133,6 +129,5 @@ def encrypt_cli(
         logger.error(f"An unexpected error occurred: {e}")
         raise typer.Exit(code=1)
 
-# Entry point for Typer
 if __name__ == "__main__":
     app()
