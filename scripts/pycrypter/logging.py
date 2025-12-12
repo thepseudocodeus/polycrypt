@@ -16,6 +16,22 @@ from enum import Enum
 from loguru import logger
 from .exceptions import ConfigurationError
 
+# Had to create this to deal with loguru not handling common use case
+class LoguruEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, timedelta):
+            return obj.total_seconds()
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        if hasattr(obj, '_asdict'):
+            return obj._asdict()
+        return super().default(obj)
+
+def improved_format_record(record):
+    """Replaces old format_record below that kept generate python type errors."""
+    return json.dumps(record, cls=LoguruEncoder)
+
+
 class LogLevel(str, Enum):
     """Logging available in Rust that should be useful in python."""
     DEBUG = "DEBUG"
@@ -51,21 +67,19 @@ def _create_console_format() -> str:
         "<level>{message}</level>"
     )
 
+def _valid_datetime(obj):
+    """Json serializable datetime format."""
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError("Type not serializable")
+
 def _create_json_format() -> str:
     """Write to json for persistent use."""
+    # [] TODO: simplify and eliminate this extra abstraction
     def format_record(record: Dict[str, Any]) -> str:
         """Format log record as JSON."""
         record_copy = record.copy()
-
-        if record_copy.get("exception"):
-            record_copy["exception"] = str(record_copy["exception"])
-
-        if "time" in record_copy and hasattr(record_copy["time"], "isoformat"):
-            record_copy["time"] = record_copy["time"].isoformat()
-
-        return json.dumps(record_copy)
-
-    return format_record
+        return improve_format_record(record_copy)
 
 def _create_simple_format() -> str:
     """Minimum information."""
@@ -281,7 +295,8 @@ def _demo_logging() -> None:
     log.debug("Debug message - detailed information")
     log.info("Info message - general operation")
     log.warning("Warning message - potential issue")
-    log.error("Error message - operation failed")
+    # log.error("Error message - operation failed")
+    console.print("[green]Logging completed successfully[/green]")
 
     console.print("\n[bold]2. Structured Logging (JSON):[/bold]")
     setup_logging(
