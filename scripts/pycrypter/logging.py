@@ -10,7 +10,7 @@ Note: ignore if it makes things too complex
 import sys
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, Callable
 from enum import Enum
 from loguru import logger
@@ -27,9 +27,34 @@ class LoguruEncoder(json.JSONEncoder):
             return obj._asdict()
         return super().default(obj)
 
+# def improved_format_record(record):
+#     """Replaces old format_record below that kept generate python type errors."""
+#     return json.dumps(record, cls=LoguruEncoder)
+
 def improved_format_record(record):
-    """Replaces old format_record below that kept generate python type errors."""
-    return json.dumps(record, cls=LoguruEncoder)
+    """Abandonded prior approach to focus on the few important data points."""
+    log_entry = {
+        'timestamp': record['time'].isoformat() if hasattr(record['time'], 'isoformat') else str(record['time']),
+        'level': record['level'].name if hasattr(record['level'], 'name') else str(record['level']),
+        'message': record['message'],
+        'logger': record['name'],
+        'function': record['function'],
+        'line': record['line'],
+        'elapsed_seconds': record['elapsed'].total_seconds() if isinstance(record['elapsed'], timedelta) else 0,
+    }
+
+    if 'extra' in record and record['extra']:
+        log_entry['extra'] = record['extra']
+
+    if record['exception']:
+        log_entry['exception'] = str(record['exception'])
+
+    # Notes:
+        # - loguru treats '{' and '}' as a nested structure
+        # - this cost a lot of time to uncover
+        # [] TODO: consider creating a wrapper for even packages to ensure they behave as I would expect
+        # [] TODO: implement more intuitive errors for debugging as I would expect
+    return json.dumps(log_entry) + "\n"
 
 
 class LogLevel(str, Enum):
@@ -73,13 +98,9 @@ def _valid_datetime(obj):
         return obj.isoformat()
     raise TypeError("Type not serializable")
 
-def _create_json_format() -> str:
+def _create_json_format() -> Callable[[Dict[str, Any]], str]:
     """Write to json for persistent use."""
-    # [] TODO: simplify and eliminate this extra abstraction
-    def format_record(record: Dict[str, Any]) -> str:
-        """Format log record as JSON."""
-        record_copy = record.copy()
-        return improve_format_record(record_copy)
+    return improved_format_record
 
 def _create_simple_format() -> str:
     """Minimum information."""
