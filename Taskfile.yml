@@ -7,6 +7,23 @@ vars:
 
 tasks:
   default:
+    desc: Show tasks
     cmds:
-      - echo "{{.GREETING}}"
+      - task -a
     silent: true
+
+  init:py:
+    desc: Setup python environment
+    cmds:
+      - uv pip compile requirements.in -o requirements.txt
+
+  init:poly:
+    desc: Create workspaces
+    cmds:
+      - mkdir go_work
+      - mkdir elixir_work
+      - mkdir julia_work
+      - mkdir jsts_work
+      - mkdir rust_work
+      - mkdir other_work
+      - mkdir scripts
