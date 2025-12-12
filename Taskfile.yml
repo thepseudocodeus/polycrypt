@@ -12,6 +12,12 @@ tasks:
       - task -a
     silent: true
 
+  init:env:
+    desc: Setup dev env
+    cmds:
+      - touch .env
+      - echo "DEV=True" >> .env
+
   init:py:
     desc: Setup python environment
     cmds:
