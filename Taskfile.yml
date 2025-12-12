@@ -44,3 +44,8 @@ tasks:
       - cd go_work/mockgen && go get github.com/brianvoe/gofakeit/v6@latest
       - cd go_work && go work init ./mockgen
       - touch go_work/mockgen/main.go
+
+  demo:py:hash:
+    desc: Demo the hashing functionality
+    cmds:
+      - uv run python3 -m scripts.pycrypter.hashing
