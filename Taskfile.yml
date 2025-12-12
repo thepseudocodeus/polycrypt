@@ -1,6 +1,6 @@
 # https://taskfile.dev
 
-version: '3'
+version: "3"
 
 vars:
   GREETING: Hello, World!
@@ -33,3 +33,12 @@ tasks:
       - mkdir rust_work
       - mkdir other_work
       - mkdir scripts
+
+  new:go:mock:
+    desc: Make go app to generate mock directory
+    cmds:
+      - mkdir -p go_work/mockgen
+      - cd go_work/mockgen && go mod init polycrypt/mockgen
+      - cd go_work/mockgen && go get github.com/brianvoe/gofakeit/v6@latest
+      - cd go_work && go work init ./mockgen
+      - touch go_work/mockgen/main.go

@@ -1,0 +1,1 @@
+I'll load the 1080p SSL panel, that should buffer the RAM interface!
