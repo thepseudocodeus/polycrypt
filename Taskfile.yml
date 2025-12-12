@@ -22,6 +22,8 @@ tasks:
     desc: Setup python environment
     cmds:
       - uv pip compile requirements.in -o requirements.txt
+      - sleep 1
+      - uv pip install -r requirements.txt
 
   init:poly:
     desc: Create workspaces
