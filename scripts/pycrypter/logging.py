@@ -81,6 +81,7 @@ DEFAULT_CONFIG = {
     "enqueue": True,  # From LeetCode
     "backtrace": True,  # From Exilir supervision trees
     "diagnose": True,
+    "serialize": True, # Required for json functionality
 }
 
 def _create_console_format() -> str:
@@ -160,6 +161,7 @@ def setup_logging(
             enqueue=kwargs.get("enqueue", DEFAULT_CONFIG["enqueue"]),
             backtrace=kwargs.get("backtrace", DEFAULT_CONFIG["backtrace"]),
             diagnose=kwargs.get("diagnose", DEFAULT_CONFIG["diagnose"]),
+            serialize=kwargs.get("serialize", DEFAULT_CONFIG["serialize"]),
         )
 
         if log_file:
