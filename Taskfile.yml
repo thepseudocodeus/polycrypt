@@ -53,4 +53,10 @@ tasks:
   demo:py:log:
     desc: Demo the logging functionality
     cmds:
-      - uv run python3 -m scripts.pycrypter.logging --demo
+      # - uv run python3 -m scripts.pycrypter.logging --demo
+      - uv run python3 -m scripts.pycrypter.adv_logging --demo
+
+  demo:py:s1:
+    desc: Demo hashing a directory
+    cmds:
+      - uv run python3 -m scripts.pycrypter.step1_hash
